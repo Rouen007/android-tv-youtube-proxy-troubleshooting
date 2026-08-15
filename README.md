@@ -1,44 +1,74 @@
-# Android TV YouTube (SmartTube) & Native Daemon Proxy Troubleshooting Guide
-### 🇨🇳 大陆普通安卓电视（创维/酷开/小米/索尼/TCL/海信）一键极速接入 YouTube 完整解决方案与工具箱
+# Android TV YouTube (SmartTube) & Native Daemon Proxy Solution
+### 🇨🇳 大陆普通安卓电视（创维/酷开/小米/索尼/TCL/海信）一键极速接入 YouTube 完整解决方案与排坑指南
 
-> **💡 "Believe that programming can change everything."** — Empowering ordinary TV devices with simple, robust, and independent global streaming connectivity.
+> **💡 "Believe that programming can change everything."** — 让科技回归简单，让大屏畅享全球视界。
 
 [![Platform](https://img.shields.io/badge/Platform-Android%20TV%20%7C%20Google%20TV-blue?logo=android)](https://github.com/Rouen007)
-[![Target Device](https://img.shields.io/badge/OEM-Skyworth%20%7C%20Coocaa%20%7C%20Xiaomi%20%7C%20Sony%20%7C%20TCL-orange)](https://github.com/Rouen007)
-[![App](https://img.shields.io/badge/App-SmartTube%20Stable-red?logo=youtube)](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases)
+[![Target Devices](https://img.shields.io/badge/OEM-Skyworth%20%7C%20Coocaa%20%7C%20Xiaomi%20%7C%20Sony%20%7C%20TCL%20%7C%20Hisense-orange)](https://github.com/Rouen007)
+[![SmartTube](https://img.shields.io/badge/App-SmartTube%20Stable-red?logo=youtube)](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases)
 [![Daemon](https://img.shields.io/badge/Proxy%20Core-Mihomo%20(Clash%20Meta)-green)](https://github.com/MetaCubeX/mihomo)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
-本项目旨在彻底解决 **中国大陆地区普通安卓电视（无 Google 框架、厂商激进杀后台、遥控器难以操作 VPN、局域网共享代理频繁断流）** 无法顺畅观看 YouTube 的行业痛点。
+本项目旨在彻底解决 **中国大陆地区普通安卓电视（无 Google 框架、厂商激进杀后台、遥控器难以操作 VPN、局域网共享代理频繁断流卡死）** 无法顺畅观看 YouTube 的行业痛点。
 
 ---
 
-## 📥 核心附件与一键下载 (Release Downloads)
+## 📺 演示与可视化控制面板
+
+电视上的 Linux 原生代理守护进程启动后，开放了标准 REST API 控制接口（`9090`）。你可以在同一局域网的电脑或手机浏览器打开 Web 面板，实时查看电视连接的节点与网络流量：
+
+```
+http://yacd.metacubex.one/?hostname=<你的电视IP>&port=9090&secret=
+```
+
+---
+
+## 📥 核心附件下载 (Release Downloads)
 
 所有电视端所需的安装包与编译好的守护进程文件，均已打包上传至本仓库的 **[GitHub Releases 页面](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/tag/v1.0.0)**：
 
-| 附件文件 | 说明 | 下载链接 |
-| :--- | :--- | :--- |
-| **`SmartTube_Stable.apk`** | YouTube 电视端官方精简纯净版（无广告、支持硬解、支持中文） | [立即下载](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/download/v1.0.0/SmartTube_Stable.apk) |
-| **`mihomo`** | 针对 Android TV (Linux ARM64/ARMv7) 编译的底层常驻无头守护程序 | [立即下载](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/download/v1.0.0/mihomo) |
-| **`setup_tv.py`** | 大陆安卓电视从零到一全自动安装与配置部署脚本 | [查看脚本](./scripts/setup_tv.py) |
+| 附件文件 | 文件大小 | 说明 | 快速下载 |
+| :--- | :--- | :--- | :--- |
+| **`SmartTube_Stable.apk`** | ~34 MB | YouTube 电视端官方精简纯净版（无广告、支持芯片硬解、全中文） | [立即下载](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/download/v1.0.0/SmartTube_Stable.apk) |
+| **`mihomo`** | ~27 MB | 针对 Android TV (Linux ARM64/v7) 编译的底层常驻无头守护程序 | [立即下载](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/download/v1.0.0/mihomo) |
+| **`manage.py`** | - | 终端交互式全功能控制台（全自动部署 / 体检 / 测速 / 遥控） | [查看代码](./manage.py) |
 
 ---
 
-## ⚡ 3 分钟极速上手（一键全自动部署）
+## ⚡ 极速上手：交互式管理控制台 (`manage.py`)
 
-只要电脑和电视处于同一 Wi-Fi，且电视开启了 ADB 调试：
+只要电脑和电视连接在同一个 Wi-Fi 路由器下：
 
 ```bash
-# 1. 克隆项目
+# 1. 克隆本项目
 git clone https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting.git
 cd android-tv-youtube-proxy-troubleshooting
 
-# 2. 一键自动连接电视、安装 SmartTube、部署后台守护进程并导入订阅
-python scripts/setup_tv.py --tv-ip 192.168.0.116 --sub-url "你的机场Clash订阅链接"
+# 2. 启动交互式控制台
+python manage.py
 ```
 
-> 💡 **完成后**：电视已具备完全独立的本地代理能力。**关闭电脑或手机，电视开机即可直接秒开 YouTube**！
+### 🖥️ 终端控制台界面预览：
+```text
+======================================================================
+  📺 Android TV YouTube & Native Proxy Daemon Manager
+  💡 "Believe that programming can change everything."
+======================================================================
+
+ 当前目标电视 IP: 192.168.0.116
+
+ [1] 🚀 一键全自动部署 (安装SmartTube + 部署后台守护进程 + 导入订阅)
+ [2] 📡 电视环境一键全面体检 (检查ADB、Mihomo进程、API、YouTube连通性)
+ [3] 🔄 一键更新机场订阅并热重载 (自动测速优选最快节点)
+ [4] ⚡ 实时并发节点测速与智能优选 (将YouTube出口切换至极速专线)
+ [5] 🛠️ 一键修复 SmartTube 代理死锁 (消除20秒超时卡死)
+ [6] 📊 在浏览器中打开可视化控制面板 (Yacd Dashboard)
+ [7] 🎮 电脑无线遥控器模式 (用电脑键盘控制电视)
+ [0] ⚙️ 修改目标电视 IP 地址
+ [q] 🚪 退出程序
+```
+
+> 💡 **部署完成后**：电视已具备完全独立的本地翻墙能力。**关闭电脑或手机，电视开机直接秒开 YouTube，完全脱离对电脑的依赖**！
 
 ---
 
@@ -47,13 +77,13 @@ python scripts/setup_tv.py --tv-ip 192.168.0.116 --sub-url "你的机场Clash订
   - [1.1 为什么 Android GUI 代理客户端走不通？](#11-为什么-android-gui-代理客户端走不通)
   - [1.2 导致“不定期卡死 / 持续转菊花”的三大隐藏元凶](#12-导致不定期卡死--持续转菊花的三大隐藏元凶)
   - [1.3 今天走过的弯路总结](#13-今天走过的弯路总结)
-- [2. 创维电视 ADB 远程操作与文件传输实战](#2-创维电视-adb-远程操作与文件传输实战)
-  - [2.1 创维电视开启 ADB 调试](#21-创维电视开启-adb-调试)
+- [2. 电视 ADB 远程操作与文件传输实战](#2-电视-adb-远程操作与文件传输实战)
+  - [2.1 如何开启电视的【ADB 调试】（各品牌差异与小红书搜索）](#21-如何开启电视的adb-调试各品牌差异与小红书搜索)
   - [2.2 远程如何把二进制与配置复制进电视？](#22-远程如何把二进制与配置复制进电视)
   - [2.3 Leanback TV 界面的 ADB 控制要点（遥控按键 vs 坐标点击）](#23-leanback-tv-界面的-adb-控制要点遥控按键-vs-坐标点击)
-  - [2.4 获取 Root 权限与 Telnet 后门 (端口 4149)](#24-获取-root-权限与-telnet-后门-端口-4149)
+  - [2.4 创维/酷开 Root Telnet 调试通道 (端口 4149)](#24-创维酷开-root-telnet-调试通道-端口-4149)
 - [3. 终极架构：Linux Native 守护进程 + 本地回环代理](#3-终极架构linux-native-守护进程--本地回环代理)
-- [4. 自动化脚本工具箱](#4-自动化脚本工具箱)
+- [4. 自动化脚本工具箱详情](#4-自动化脚本工具箱详情)
 - [5. SmartTube 最佳播放参数配置](#5-smarttube-最佳播放参数配置)
 
 ---
@@ -103,9 +133,9 @@ graph TD
 
 ---
 
-## 2. 创维电视 ADB 远程操作与文件传输实战
+## 2. 电视 ADB 远程操作与文件传输实战
 
-### 2.1 如何开启电视的【ADB 调试】（各品牌差异）
+### 2.1 如何开启电视的【ADB 调试】（各品牌差异与小红书搜索）
 
 不同品牌的安卓电视（创维、小米、海信、TCL、索尼、长虹、华为等）开启 ADB 调试的暗码与工厂菜单路径各不相同：
 
@@ -168,7 +198,7 @@ adb shell "nohup /data/local/tmp/mihomo -d /sdcard/mihomo > /dev/null 2>&1 &"
 
 ---
 
-### 2.4 获取 Root 权限与 Telnet 后门 (端口 4149)
+### 2.4 创维/酷开 Root Telnet 调试通道 (端口 4149)
 创维电视系统通常内置了 `busybox telnetd` 调试守护进程（运行在 `4149` 端口，拥有 `uid=0 (root)` 权限）：
 ```python
 import socket
@@ -203,10 +233,11 @@ flowchart TD
 
 ---
 
-## 4. 自动化脚本工具箱
+## 4. 自动化脚本工具箱详情
 
-| 脚本文件 | 功能说明 | 快速执行命令 |
+| 脚本文件 | 功能说明 | 独立执行命令 |
 | :--- | :--- | :--- |
+| **`manage.py`** | 统一终端可视化管理控制台（推荐） | `python manage.py` |
 | **`setup_tv.py`** | 大陆安卓电视一键部署全套环境（APK安装 + 二进制部署 + 订阅注入） | `python scripts/setup_tv.py --tv-ip <IP> --sub-url "<URL>"` |
 | **`update_subscription.py`** | 一键更新机场订阅链接并热重载 | `python scripts/update_subscription.py --tv-ip <IP> --url "<URL>"` |
 | **`fix_smarttube_proxy.py`** | 一键修复 SmartTube 内部代理死锁 | `python scripts/fix_smarttube_proxy.py --tv-ip <IP>` |
