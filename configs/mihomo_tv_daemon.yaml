@@ -1,0 +1,48 @@
+# Mihomo (Clash Meta) Daemon Configuration for Android TV
+# Optimized for low memory footprint, DNS stability, and YouTube streaming
+
+mixed-port: 7890
+allow-lan: true
+mode: rule
+log-level: silent
+ipv6: false
+tcp-concurrent: true
+keep-alive-idle: 600
+find-process-mode: "off"
+
+external-controller: 0.0.0.0:9090
+secret: ''
+
+dns:
+  enable: true
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  nameserver:
+    - https://dns.google/dns-query
+    - https://1.1.1.1/dns-query
+    - 8.8.8.8
+    - 1.1.1.1
+  fallback:
+    - https://dns.google/dns-query
+    - https://1.1.1.1/dns-query
+
+# Proxy Providers / Nodes Configuration
+proxies:
+  # Example Shadowsocks node:
+  # - name: "IEPL-HongKong-01"
+  #   type: ss
+  #   server: example.com
+  #   port: 443
+  #   cipher: 2022-blake3-aes-128-gcm
+  #   password: your_password
+
+proxy-groups:
+  - name: Proxy
+    type: select
+    proxies:
+      - DIRECT
+      # Add your node names here
+
+rules:
+  - MATCH,Proxy
