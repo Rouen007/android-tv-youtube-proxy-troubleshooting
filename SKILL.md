@@ -55,7 +55,15 @@ graph TD
 
 ## 3. Skyworth / Android TV ADB Operation & File Copy Guide
 
-### 3.1 Pushing Binaries & Configurations to TV
+### 3.1 开启电视 ADB 调试
+不同品牌的安卓电视（创维、小米、海信、TCL、索尼等）开启方式各异。**强烈建议直接在小红书或 B站 搜索 `“你的电视品牌 + 开启ADB”`**（例如：`创维电视 开启ADB调试`、`小米电视 开启开发者模式`），1分钟即可搞定。
+
+电脑连接命令：
+```bash
+adb connect <TV_IP>:5555
+```
+
+### 3.2 Pushing Binaries & Configurations to TV
 ```bash
 # Push native binary to /data/local/tmp (executable)
 adb push mihomo /data/local/tmp/mihomo
