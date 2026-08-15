@@ -1,16 +1,46 @@
 # Android TV YouTube (SmartTube) & Native Daemon Proxy Troubleshooting Guide
+### 🇨🇳 大陆普通安卓电视（创维/酷开/小米/索尼/TCL/海信）一键极速接入 YouTube 完整解决方案与工具箱
 
 [![Platform](https://img.shields.io/badge/Platform-Android%20TV%20%7C%20Google%20TV-blue?logo=android)](https://github.com/Rouen007)
-[![Target Device](https://img.shields.io/badge/OEM-Skyworth%20%7C%20Coocaa%20%7C%20Xiaomi%20%7C%20Sony-orange)](https://github.com/Rouen007)
-[![App](https://img.shields.io/badge/App-SmartTube%20Stable-red?logo=youtube)](https://github.com/yuliskov/SmartTube)
+[![Target Device](https://img.shields.io/badge/OEM-Skyworth%20%7C%20Coocaa%20%7C%20Xiaomi%20%7C%20Sony%20%7C%20TCL-orange)](https://github.com/Rouen007)
+[![App](https://img.shields.io/badge/App-SmartTube%20Stable-red?logo=youtube)](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases)
 [![Daemon](https://img.shields.io/badge/Proxy%20Core-Mihomo%20(Clash%20Meta)-green)](https://github.com/MetaCubeX/mihomo)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
-A battle-tested architectural blueprint, diagnostic runbook, and automation toolset for running **YouTube (SmartTube)** with maximum stability on locked-down Android TV systems (Skyworth 创维, Coocaa 酷开, Xiaomi, Sony, TCL).
+本项目旨在彻底解决 **中国大陆地区普通安卓电视（无 Google 框架、厂商激进杀后台、遥控器难以操作 VPN、局域网共享代理频繁断流）** 无法顺畅观看 YouTube 的行业痛点。
 
 ---
 
-## 📖 Table of Contents
+## 📥 核心附件与一键下载 (Release Downloads)
+
+所有电视端所需的安装包与编译好的守护进程文件，均已打包上传至本仓库的 **[GitHub Releases 页面](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/tag/v1.0.0)**：
+
+| 附件文件 | 说明 | 下载链接 |
+| :--- | :--- | :--- |
+| **`SmartTube_Stable.apk`** | YouTube 电视端官方精简纯净版（无广告、支持硬解、支持中文） | [立即下载](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/download/v1.0.0/SmartTube_Stable.apk) |
+| **`mihomo`** | 针对 Android TV (Linux ARM64/ARMv7) 编译的底层常驻无头守护程序 | [立即下载](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/download/v1.0.0/mihomo) |
+| **`setup_tv.py`** | 大陆安卓电视从零到一全自动安装与配置部署脚本 | [查看脚本](./scripts/setup_tv.py) |
+
+---
+
+## ⚡ 3 分钟极速上手（一键全自动部署）
+
+只要电脑和电视处于同一 Wi-Fi，且电视开启了 ADB 调试：
+
+```bash
+# 1. 克隆项目
+git clone https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting.git
+cd android-tv-youtube-proxy-troubleshooting
+
+# 2. 一键自动连接电视、安装 SmartTube、部署后台守护进程并导入订阅
+python scripts/setup_tv.py --tv-ip 192.168.0.116 --sub-url "你的机场Clash订阅链接"
+```
+
+> 💡 **完成后**：电视已具备完全独立的本地代理能力。**关闭电脑或手机，电视开机即可直接秒开 YouTube**！
+
+---
+
+## 📖 目录
 - [1. 核心问题深度复盘 (Post-Mortem & Detours)](#1-核心问题深度复盘-post-mortem--detours)
   - [1.1 为什么 Android GUI 代理客户端走不通？](#11-为什么-android-gui-代理客户端走不通)
   - [1.2 导致“不定期卡死 / 持续转菊花”的三大隐藏元凶](#12-导致不定期卡死--持续转菊花的三大隐藏元凶)
@@ -22,10 +52,6 @@ A battle-tested architectural blueprint, diagnostic runbook, and automation tool
   - [2.4 获取 Root 权限与 Telnet 后门 (端口 4149)](#24-获取-root-权限与-telnet-后门-端口-4149)
 - [3. 终极架构：Linux Native 守护进程 + 本地回环代理](#3-终极架构linux-native-守护进程--本地回环代理)
 - [4. 自动化脚本工具箱](#4-自动化脚本工具箱)
-  - [4.1 一键更新机场订阅与热重载 (`update_subscription.py`)](#41-一键更新机场订阅与热重载-update_subscriptionpy)
-  - [4.2 一键修复 SmartTube 内部代理死锁 (`fix_smarttube_proxy.py`)](#42-一键修复-smarttube-内部代理死锁-fix_smarttube_proxypy)
-  - [4.3 全自动多节点测速与优选 (`smart_node_selector.py`)](#43-全自动多节点测速与优选-smart_node_selectorpy)
-  - [4.4 电视环境一键诊断 (`diag_tv.py`)](#44-电视环境一键诊断-diag_tvpy)
 - [5. SmartTube 最佳播放参数配置](#5-smarttube-最佳播放参数配置)
 
 ---
@@ -34,14 +60,13 @@ A battle-tested architectural blueprint, diagnostic runbook, and automation tool
 
 ### 1.1 为什么 Android GUI 代理客户端走不通？
 很多用户第一反应是在电视上安装 **FlClash、v2rayNG、Clash for Android 或 Karing**：
-* **OEM 强杀后台机制**：创维/酷开电视内置了激进的性能守护程序（`DetectSys` 和 `SkyRMS_Performance`），只要你把 VPN 应用切到后台并打开 SmartTube，系统会在 **2~5 秒内直接杀掉 VPN 进程**。
-* **VpnService 接口被撤回**：GUI 应用被杀死后，Android 系统的全局 VPN 通道立即被注销，SmartTube 瞬间断网。
-* **内存不足 OOM**：电视普遍只有 1.5G~2G 内存，GUI 类代理软件占用的 WebView / Flutter 渲染层动辄消耗 200MB+ 内存，极易被系统低内存杀手（LMK）作为首要目标击杀。
+* **OEM 强杀后台机制**：创维/酷开/小米等电视内置了激进的后台清理机制（如 `DetectSys` 和 `SkyRMS_Performance`）。只要你把 VPN 切换到后台并打开 SmartTube，系统会在 **2~5 秒内直接杀死 VPN 进程**。
+* **VpnService 接口注销**：GUI 应用被杀死后，Android 系统的全局 VPN 接口立即被销毁注销，SmartTube 瞬间断网。
+* **内存不足 OOM**：电视普遍只有 1.5G~2G 内存，GUI 类代理软件占用的 WebView / Flutter 渲染层动辄消耗 200MB+ 内存，极易被系统作为首要目标杀掉。
 
 ---
 
 ### 1.2 导致“不定期卡死 / 持续转菊花”的三大隐藏元凶
-在解决过程中，我们发现表面上都是“转菊花”，但背后其实有 3 个完全不同的致命原因：
 
 ```mermaid
 graph TD
@@ -55,7 +80,7 @@ graph TD
 ```
 
 1. **SmartTube 内部配置写死 (20秒超时死锁)**：
-   SmartTube 在 `/data/data/org.smarttube.stable/shared_prefs/org.smarttube.stable_preferences.xml` 中将代理地址死死持久化。一旦网络或电脑 IP 变动，OkHttp/Retrofit 会对旧 IP 持续尝试连接，**每次阻塞 20 秒 (20000ms SocketTimeoutException)**，导致换台、刷新封面极慢。
+   SmartTube 会在 `/data/data/org.smarttube.stable/shared_prefs/org.smarttube.stable_preferences.xml` 中将代理地址持久化。一旦网络或电脑 IP 变动，OkHttp/Retrofit 会对旧 IP 持续尝试连接，**每次阻塞 20 秒 (20000ms SocketTimeoutException)**，导致换台、刷新封面极慢。
 2. **视频流软解导致 CPU 暴毙**：
    YouTube 默认提供 4K AV1 或 VP9 视频流。中低端电视芯片（如晶晨 Amlogic、联发科 MTK）缺乏 AV1 硬件解码单元，强行软解会导致 CPU 跑满、音画不同步甚至播放器死锁。
 3. **国内 DNS 污染 `*.ytimg.com`**：
@@ -65,10 +90,10 @@ graph TD
 
 ### 1.3 今天走过的弯路总结
 * ❌ **弯路 1：依赖局域网电脑代理（Clash Verge）**
-  - **问题**：电脑休眠、Wi-Fi 切换（如由 5G 切回 2.4G 导致电脑 IP 从 `192.168.28.253` 变成 `192.168.0.114`），以及 Windows Defender 防火墙默认拦截局域网入站连接（TCP SYN 丢弃），电视端直接彻底瘫痪。
+  - **问题**：电脑休眠、Wi-Fi 切换（如由 5G 切回 2.4G 导致电脑 IP 变动），以及 Windows Defender 防火墙默认拦截局域网入站连接（TCP SYN 丢弃），电视端直接彻底瘫痪。
   - **正解**：电视端必须运行独立的本地后台进程，实现 **“零电脑依赖、开机自启”**。
 * ❌ **弯路 2：尝试在电视安装安卓版客户端（FlClash）**
-  - **问题**：安装后在电视遥控器上极难操作，且一旦切到 SmartTube 后台立刻被创维系统杀进程。
+  - **问题**：安装后在电视遥控器上极难操作，且一旦切到 SmartTube 后台立刻被系统杀进程。
   - **正解**：摒弃 Android App 形式，直接将编译好的 **Linux 命令行二进制程序 (`mihomo`)** 放入 `/data/local/tmp` 作为 Linux 常驻守护进程运行。
 * ❌ **弯路 3：只修改系统全局代理，未清除 SmartTube 自身代理缓存**
   - **问题**：通过 ADB 设置了 `settings put global http_proxy`，但 SmartTube 应用内部依旧优先读取自身的 `web_proxy_uri`，导致报错依旧。
@@ -126,8 +151,6 @@ adb shell "nohup /data/local/tmp/mihomo -d /sdcard/mihomo > /dev/null 2>&1 &"
 | **确定 / 播放 (OK / ENTER)** | 23 / 66 | `adb shell input keyevent 23` |
 | **返回 (BACK)** | 4 | `adb shell input keyevent 4` |
 | **主页 (HOME)** | 3 | `adb shell input keyevent 3` |
-| **删除字符 (DEL)** | 67 | `adb shell input keyevent 67` |
-| **文本输入** | - | `adb shell input text "<your_text>"` |
 
 ---
 
@@ -141,7 +164,6 @@ s.connect(("192.168.0.116", 4149)) # 创维电视 root telnet
 s.sendall(b"id\n")
 print(s.recv(1024)) # uid=0(root) gid=0(root)
 ```
-利用此通道可以直接读写任意系统受保护的应用数据目录（如 `/data/data/org.smarttube.stable/`）。
 
 ---
 
@@ -169,29 +191,13 @@ flowchart TD
 
 ## 4. 自动化脚本工具箱
 
-### 4.1 一键更新机场订阅与热重载 (`update_subscription.py`)
-无需重启电视，自动拉取订阅、注入电视低内存参数、推送到电视并热更新，随后自动并发测速并绑定最快节点：
-```bash
-python scripts/update_subscription.py --tv-ip 192.168.0.116 --url "https://your-airport.com/api/v1/client/subscribe?token=xxxx"
-```
-
-### 4.2 一键修复 SmartTube 内部代理死锁 (`fix_smarttube_proxy.py`)
-通过 Root 权限直接更新 SmartTube 内部首选项 XML 文件并重启应用：
-```bash
-python scripts/fix_smarttube_proxy.py --tv-ip 192.168.0.116
-```
-
-### 4.3 全自动多节点测速与优选 (`smart_node_selector.py`)
-通过 Mihomo REST API 对所有专线节点进行毫秒级测速，并将 `Proxy` 组切换到当前最快节点：
-```bash
-python scripts/smart_node_selector.py --tv-ip 192.168.0.116
-```
-
-### 4.4 电视环境一键诊断 (`diag_tv.py`)
-全面检测 ADB 连通性、后台进程状态、API 端口及 YouTube 连通性：
-```bash
-python scripts/diag_tv.py --tv-ip 192.168.0.116
-```
+| 脚本文件 | 功能说明 | 快速执行命令 |
+| :--- | :--- | :--- |
+| **`setup_tv.py`** | 大陆安卓电视一键部署全套环境（APK安装 + 二进制部署 + 订阅注入） | `python scripts/setup_tv.py --tv-ip <IP> --sub-url "<URL>"` |
+| **`update_subscription.py`** | 一键更新机场订阅链接并热重载 | `python scripts/update_subscription.py --tv-ip <IP> --url "<URL>"` |
+| **`fix_smarttube_proxy.py`** | 一键修复 SmartTube 内部代理死锁 | `python scripts/fix_smarttube_proxy.py --tv-ip <IP>` |
+| **`smart_node_selector.py`** | 全自动多节点并发测速并优选 | `python scripts/smart_node_selector.py --tv-ip <IP>` |
+| **`diag_tv.py`** | 电视端环境与连通性全面诊断 | `python scripts/diag_tv.py --tv-ip <IP>` |
 
 ---
 
