@@ -1,8 +1,6 @@
 # Android TV YouTube (SmartTube) & Native Daemon Proxy Solution
 ### 🇨🇳 大陆普通安卓电视（创维/酷开/小米/索尼/TCL/海信）一键极速接入 YouTube 完整解决方案与排坑指南
 
-> **💡 "Believe that programming can change everything."** — 让科技回归简单，让大屏畅享全球视界。
-
 [![Platform](https://img.shields.io/badge/Platform-Android%20TV%20%7C%20Google%20TV-blue?logo=android)](https://github.com/Rouen007)
 [![Target Devices](https://img.shields.io/badge/OEM-Skyworth%20%7C%20Coocaa%20%7C%20Xiaomi%20%7C%20Sony%20%7C%20TCL%20%7C%20Hisense-orange)](https://github.com/Rouen007)
 [![SmartTube](https://img.shields.io/badge/App-SmartTube%20Stable-red?logo=youtube)](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases)
@@ -52,7 +50,6 @@ python manage.py
 ```text
 ======================================================================
   📺 Android TV YouTube & Native Proxy Daemon Manager
-  💡 "Believe that programming can change everything."
 ======================================================================
 
  当前目标电视 IP: <电视IP地址>

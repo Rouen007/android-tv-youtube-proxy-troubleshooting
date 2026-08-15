@@ -68,7 +68,6 @@ def banner():
     print(r"""
 ======================================================================
   📺 Android TV YouTube & Native Proxy Daemon Manager
-  💡 "Believe that programming can change everything."
 ======================================================================
     """)
 
