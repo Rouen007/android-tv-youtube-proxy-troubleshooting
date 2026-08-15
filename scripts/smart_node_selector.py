@@ -8,6 +8,7 @@ import argparse
 import urllib.request
 import json
 import time
+import os
 
 def benchmark_and_switch(tv_ip, api_port=9090, proxy_port=7890, group_name="Proxy"):
     print(f"[*] Querying proxies from Mihomo API at http://{tv_ip}:{api_port}...")

@@ -10,20 +10,36 @@ import socket
 import urllib.request
 import json
 import time
+import os
+
+def get_adb_cmd():
+    if subprocess.run(["where", "adb"], capture_output=True).stdout:
+        return "adb"
+    candidates = [
+        r"C:\Users\Administrator\Desktop\adb_tools\platform-tools\adb.exe",
+        r"D:\adb\adb.exe",
+        r"C:\adb\adb.exe"
+    ]
+    for c in candidates:
+        if os.path.exists(c):
+            return c
+    return "adb"
 
 def check_adb(tv_ip, port=5555):
+    adb = get_adb_cmd()
     target = f"{tv_ip}:{port}"
     print(f"[*] Checking ADB connection to {target}...")
-    subprocess.run(["adb", "connect", target], capture_output=True)
-    r = subprocess.run(["adb", "devices"], capture_output=True, text=True)
+    subprocess.run([adb, "connect", target], capture_output=True)
+    r = subprocess.run([adb, "devices"], capture_output=True, text=True)
     connected = target in r.stdout
     print(f"    ADB Status: {'CONNECTED' if connected else 'DISCONNECTED'}")
     return connected
 
 def check_tv_daemons(tv_ip, port=5555):
+    adb = get_adb_cmd()
     target = f"{tv_ip}:{port}"
     print("[*] Inspecting TV running processes...")
-    r = subprocess.run(["adb", "-s", target, "shell", "ps -ef || ps"], capture_output=True, text=True)
+    r = subprocess.run([adb, "-s", target, "shell", "ps -ef || ps"], capture_output=True, text=True)
     mihomo_running = False
     for line in r.stdout.splitlines():
         if "mihomo" in line.lower():

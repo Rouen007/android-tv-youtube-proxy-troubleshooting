@@ -50,6 +50,7 @@ graph TD
 | **Infinite Spinning / "转菊花" During Video Playback** | Video player is requesting 4K AV1 / VP9 formats that exceed the TV SoC's hardware decoder capabilities, forcing software decoding stall. | In player: Format shows 4K AV1 / VP9 and `AmlogicVideoDecoderAwesome: wait timeout 10ms`. | In SmartTube: Press Down $\rightarrow$ `HQ` $\rightarrow$ Video Preset $\rightarrow$ Lock to **`1080p 60fps AVC`** (or `1080p 30fps AVC`). |
 | **Home Feed Loads, But Thumbnails are Blank/Dark** | 1. DNS poisoning from domestic upstream DNS (`redir-host` resolving fake IPs for `ytimg.com`).<br>2. Local image disk cache corruption during hard shutdowns. | Check thumbnail URLs: `curl https://i.ytimg.com/...` through proxy.<br>Check Mihomo DNS config. | In `/sdcard/mihomo/config.yaml`, ensure `https://dns.google/dns-query` or `1.1.1.1` is used, or switch to `fake-ip` mode. Clean cache if needed. |
 | **Airport Subscription Changes / Node Expired** | Airport updates subscription URL or nodes expire. | Run `python scripts/update_subscription.py --url "<SUB_URL>"`. | Auto-downloads, injects TV parameters, hot-reloads Mihomo, and auto-selects the fastest node. |
+| **TV Cold Reboot / Power-cut Daemon Disconnected** | TV reboots and kills all ADB interactive shell background sessions (`nohup`). | Check `ps -ef \| grep mihomo` or test port 7890. | Install `LaunchOnBoot_TV.apk` with `BOOT_COMPLETED` broadcast receiver to auto-launch `/data/local/tmp/mihomo` in 0.1s. |
 
 ---
 

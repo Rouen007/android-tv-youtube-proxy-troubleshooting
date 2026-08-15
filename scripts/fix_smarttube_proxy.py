@@ -8,6 +8,8 @@ import argparse
 import socket
 import time
 import subprocess
+import os
+import json
 
 def run_telnet_root(tv_ip, port, cmd):
     try:
