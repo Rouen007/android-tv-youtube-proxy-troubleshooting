@@ -60,9 +60,22 @@ def check_youtube_speed(tv_ip, proxy_port=7890):
         print(f"    [-] YouTube Connection FAILED: {e}")
         return False
 
+def get_default_tv_ip():
+    config_path = os.path.join(os.path.dirname(__file__), "..", "config.json")
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                c = json.load(f)
+                if c.get("tv_ip"):
+                    return c.get("tv_ip")
+        except Exception:
+            pass
+    return "192.168.1.100"
+
 def main():
     parser = argparse.ArgumentParser(description="Android TV YouTube & Proxy Diagnostic Tool")
-    parser.add_argument("--tv-ip", default="192.168.0.116", help="Android TV IP address")
+    default_ip = get_default_tv_ip()
+    parser.add_argument("--tv-ip", default=default_ip, help=f"Android TV IP address (default: {default_ip})")
     args = parser.parse_args()
 
     print("=" * 60)

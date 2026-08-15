@@ -17,7 +17,30 @@ import re
 SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "scripts")
 sys.path.insert(0, SCRIPTS_DIR)
 
-DEFAULT_TV_IP = "192.168.0.116"
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config.json")
+
+def load_local_config():
+    if os.path.exists(CONFIG_PATH):
+        try:
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+def save_local_config(conf):
+    try:
+        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(conf, f, indent=2)
+    except Exception:
+        pass
+
+def get_default_tv_ip():
+    conf = load_local_config()
+    if conf.get("tv_ip"):
+        return conf.get("tv_ip")
+    detected = auto_detect_tv_ip()
+    return detected if detected else "192.168.1.100"
 
 def get_adb_cmd():
     if subprocess.run(["where", "adb"], capture_output=True).stdout:
@@ -124,7 +147,7 @@ def run_remote_control(tv_ip):
             print("未知按键。输入 w/s/a/d (移动), j (确定), b (返回), q (退出)")
 
 def main_menu():
-    tv_ip = auto_detect_tv_ip()
+    tv_ip = get_default_tv_ip()
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         banner()
@@ -158,6 +181,9 @@ def main_menu():
             new_ip = input("请输入新的电视 IP 地址: ").strip()
             if new_ip:
                 tv_ip = new_ip
+                conf = load_local_config()
+                conf["tv_ip"] = new_ip
+                save_local_config(conf)
         elif choice.lower() == 'q':
             print("\n感谢使用！祝你观影愉快！🍿")
             break

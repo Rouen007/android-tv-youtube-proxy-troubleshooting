@@ -1,0 +1,18 @@
+# Local Configuration (DO NOT COMMIT)
+config.json
+.env
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary Logs and Screens
+*.log
+*.png
+*.xml
+tmp_*
+temp_*
+
+# Release binaries (Hosted on GitHub Releases)
+release_assets/

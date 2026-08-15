@@ -14,7 +14,18 @@ import subprocess
 import os
 import re
 
-DEFAULT_TV_IP = "192.168.0.116"
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "config.json")
+
+def get_default_tv_ip():
+    if os.path.exists(CONFIG_PATH):
+        try:
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                c = json.load(f)
+                if c.get("tv_ip"):
+                    return c.get("tv_ip")
+        except Exception:
+            pass
+    return "192.168.1.100"
 
 TV_HEADER_TEMPLATE = """# Auto-generated & optimized for Android TV Mihomo
 mixed-port: 7890

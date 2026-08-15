@@ -59,9 +59,22 @@ def fix_smarttube(tv_ip, telnet_port=4149, proxy_uri="http://127.0.0.1:7890"):
     subprocess.run(["adb", "-s", f"{tv_ip}:5555", "shell", "monkey", "-p", "org.smarttube.stable", "-c", "android.intent.category.LAUNCHER", "1"], capture_output=True)
     print("[+] Done! SmartTube is now hooked to local proxy daemon.")
 
+def get_default_tv_ip():
+    config_path = os.path.join(os.path.dirname(__file__), "..", "config.json")
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                c = json.load(f)
+                if c.get("tv_ip"):
+                    return c.get("tv_ip")
+        except Exception:
+            pass
+    return "192.168.1.100"
+
 def main():
     parser = argparse.ArgumentParser(description="Fix SmartTube Proxy Preferences")
-    parser.add_argument("--tv-ip", default="192.168.0.116", help="Android TV IP address")
+    default_ip = get_default_tv_ip()
+    parser.add_argument("--tv-ip", default=default_ip, help=f"Android TV IP address (default: {default_ip})")
     parser.add_argument("--telnet-port", type=int, default=4149, help="Root telnet port on TV")
     parser.add_argument("--proxy-uri", default="http://127.0.0.1:7890", help="Proxy URI")
     args = parser.parse_args()

@@ -1,0 +1,7 @@
+{
+  "tv_ip": "192.168.1.100",
+  "adb_port": 5555,
+  "proxy_port": 7890,
+  "api_port": 9090,
+  "sub_url": ""
+}

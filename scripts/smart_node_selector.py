@@ -75,9 +75,22 @@ def benchmark_and_switch(tv_ip, api_port=9090, proxy_port=7890, group_name="Prox
     else:
         print("[-] No working nodes found during benchmark.")
 
+def get_default_tv_ip():
+    config_path = os.path.join(os.path.dirname(__file__), "..", "config.json")
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                c = json.load(f)
+                if c.get("tv_ip"):
+                    return c.get("tv_ip")
+        except Exception:
+            pass
+    return "192.168.1.100"
+
 def main():
     parser = argparse.ArgumentParser(description="Smart Low-Latency Node Benchmark & Selector")
-    parser.add_argument("--tv-ip", default="192.168.0.116", help="Android TV IP address")
+    default_ip = get_default_tv_ip()
+    parser.add_argument("--tv-ip", default=default_ip, help=f"Android TV IP address (default: {default_ip})")
     parser.add_argument("--api-port", type=int, default=9090, help="Mihomo REST API port")
     parser.add_argument("--proxy-port", type=int, default=7890, help="Mihomo Proxy port")
     parser.add_argument("--group", default="Proxy", help="Proxy group name in Mihomo")

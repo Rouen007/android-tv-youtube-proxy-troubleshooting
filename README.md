@@ -55,7 +55,7 @@ python manage.py
   💡 "Believe that programming can change everything."
 ======================================================================
 
- 当前目标电视 IP: 192.168.0.116
+ 当前目标电视 IP: <电视IP地址>
 
  [1] 🚀 一键全自动部署 (安装SmartTube + 部署后台守护进程 + 导入订阅)
  [2] 📡 电视环境一键全面体检 (检查ADB、Mihomo进程、API、YouTube连通性)
@@ -204,7 +204,7 @@ adb shell "nohup /data/local/tmp/mihomo -d /sdcard/mihomo > /dev/null 2>&1 &"
 import socket
 
 s = socket.socket()
-s.connect(("192.168.0.116", 4149)) # 创维电视 root telnet
+s.connect(("<电视IP地址>", 4149)) # 创维电视 root telnet
 s.sendall(b"id\n")
 print(s.recv(1024)) # uid=0(root) gid=0(root)
 ```
