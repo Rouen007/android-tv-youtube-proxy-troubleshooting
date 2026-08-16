@@ -4,6 +4,7 @@
 [![Platform](https://img.shields.io/badge/Platform-Android%20TV%20%7C%20Google%20TV-blue?logo=android)](https://github.com/Rouen007)
 [![Target Devices](https://img.shields.io/badge/OEM-Skyworth%20%7C%20Coocaa%20%7C%20Xiaomi%20%7C%20Sony%20%7C%20TCL%20%7C%20Hisense-orange)](https://github.com/Rouen007)
 [![SmartTube](https://img.shields.io/badge/App-SmartTube%20Stable-red?logo=youtube)](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases)
+[![Launcher](https://img.shields.io/badge/TV%20Launcher-YouTube%20Proxy%20Launcher-brightgreen)](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/tree/main/apk)
 [![Daemon](https://img.shields.io/badge/Proxy%20Core-Mihomo%20(Clash%20Meta)-green)](https://github.com/MetaCubeX/mihomo)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
@@ -21,15 +22,16 @@ http://yacd.metacubex.one/?hostname=<你的电视IP>&port=9090&secret=
 
 ---
 
-## 📥 核心附件下载 (Release Downloads)
+## 📥 核心附件下载 (Downloads & Releases)
 
-所有电视端所需的安装包与编译好的守护进程文件，均已打包上传至本仓库的 **[GitHub Releases 页面](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/tag/v1.0.0)**：
+所有电视端所需的安装包、专属启动器与编译好的守护进程文件，均已打包上传至本仓库：
 
-| 附件文件 | 文件大小 | 说明 | 快速下载 |
+| 附件文件 | 文件大小 | 说明 | 存放位置 |
 | :--- | :--- | :--- | :--- |
-| **`SmartTube_Stable.apk`** | ~34 MB | YouTube 电视端官方精简纯净版（无广告、支持芯片硬解、全中文） | [立即下载](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/download/v1.0.0/SmartTube_Stable.apk) |
-| **`LaunchOnBoot_TV.apk`** | ~3.4 MB | 电视开机自启助手（监听 BOOT_COMPLETED，0.1秒闪电拉起后台代理） | [立即下载](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/download/v1.0.0/LaunchOnBoot_TV.apk) |
-| **`mihomo`** | ~27 MB | 针对 Android TV (Linux ARM64/v7) 编译的底层常驻无头守护程序 | [立即下载](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/download/v1.0.0/mihomo) |
+| **`YouTube-Proxy-Launcher.apk`** | ~51 MB | **【推荐】专属电视启动器**：内置 `libmihomo.so` 原生内核，遥控器点击 0.2 秒唤醒代理并跳进 SmartTube，自身 0 内存残留 | [本地仓库](./apk/YouTube-Proxy-Launcher.apk) |
+| **`SmartTube_Stable.apk`** | ~34 MB | YouTube 电视端官方精简纯净版（无广告、支持芯片硬解、全中文） | [Release 下载](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/download/v1.0.0/SmartTube_Stable.apk) |
+| **`LaunchOnBoot_TV.apk`** | ~3.4 MB | 电视开机自启助手（监听 BOOT_COMPLETED） | [本地仓库](./apk/LaunchOnBoot_TV.apk) |
+| **`mihomo`** | ~27 MB | 针对 Android TV (Linux ARM64/v7) 编译的底层常驻无头守护程序 | [Release 下载](https://github.com/Rouen007/android-tv-youtube-proxy-troubleshooting/releases/download/v1.0.0/mihomo) |
 | **`manage.py`** | - | 终端交互式全功能控制台（全自动部署 / 体检 / 测速 / 遥控） | [查看代码](./manage.py) |
 
 ---
@@ -70,16 +72,38 @@ python manage.py
 
 ---
 
+## 🌟 纯电视端闭环：专属「YouTube 启动器」架构
+
+为了彻底摆脱对电脑的依赖，我们为 Android TV 深度定制了专属的轻量级启动器应用 **`YouTube-Proxy-Launcher.apk`**：
+
+```
+[遥控器点击主页图标]
+       │
+       ▼
+1. 唤醒代理核心 (0.05s)  ──► 检测/执行内置的 libmihomo.so 底层代理，打通 7890 专线
+       │
+       ▼
+2. 自动拉起播放器 (0.1s) ──► 瞬间跳转进入 SmartTube (YouTube) 界面
+       │
+       ▼
+3. 自身主动销毁 (0.01s)  ──► 调用 finish() 彻底退出自身，释放 100% 内存（0 内存残留）
+```
+
+### 🛠️ 为什么必须使用 Native Library (`libmihomo.so`) 打包？
+* **安卓系统的 SELinux 沙盒安全策略（`untrusted_app`）**：安卓 9+ 严格禁止普通 App 直接执行 `/data/local/tmp` 中的外部二进制文件。
+* **合规原生库提取**：将 `mihomo` 命名为 `libmihomo.so` 放在 APK 的 `lib/arm64-v8a/` 目录下，系统安装时会自动赋予其合法可执行权限，使得应用能够合法直接拉起原生守护进程。
+
+---
+
 ## 📖 目录
 - [1. 核心问题深度复盘 (Post-Mortem & Detours)](#1-核心问题深度复盘-post-mortem--detours)
   - [1.1 为什么 Android GUI 代理客户端走不通？](#11-为什么-android-gui-代理客户端走不通)
   - [1.2 导致“不定期卡死 / 持续转菊花”的三大隐藏元凶](#12-导致不定期卡死--持续转菊花的三大隐藏元凶)
-  - [1.3 今天走过的弯路总结](#13-今天走过的弯路总结)
+  - [1.3 大陆电视 Wi-Fi 连网慢与 Captive Portal 优化](#13-大陆电视-wi-fi-连网慢与-captive-portal-优化)
 - [2. 电视 ADB 远程操作与文件传输实战](#2-电视-adb-远程操作与文件传输实战)
   - [2.1 如何开启电视的【ADB 调试】（各品牌差异与小红书搜索）](#21-如何开启电视的adb-调试各品牌差异与小红书搜索)
   - [2.2 远程如何把二进制与配置复制进电视？](#22-远程如何把二进制与配置复制进电视)
   - [2.3 Leanback TV 界面的 ADB 控制要点（遥控按键 vs 坐标点击）](#23-leanback-tv-界面的-adb-控制要点遥控按键-vs-坐标点击)
-  - [2.4 创维/酷开 Root Telnet 调试通道 (端口 4149)](#24-创维酷开-root-telnet-调试通道-端口-4149)
 - [3. 终极架构：Linux Native 守护进程 + 本地回环代理](#3-终极架构linux-native-守护进程--本地回环代理)
 - [4. 自动化脚本工具箱详情](#4-自动化脚本工具箱详情)
 - [5. SmartTube 最佳播放参数配置](#5-smarttube-最佳播放参数配置)
@@ -118,24 +142,21 @@ graph TD
 
 ---
 
-### 1.3 今天走过的弯路总结
-* ❌ **弯路 1：依赖局域网电脑代理（Clash Verge）**
-  - **问题**：电脑休眠、Wi-Fi 切换（如由 5G 切回 2.4G 导致电脑 IP 变动），以及 Windows Defender 防火墙默认拦截局域网入站连接（TCP SYN 丢弃），电视端直接彻底瘫痪。
-  - **正解**：电视端必须运行独立的本地后台进程，实现 **“零电脑依赖、开机自启”**。
-* ❌ **弯路 2：尝试在电视安装安卓版客户端（FlClash）**
-  - **问题**：安装后在电视遥控器上极难操作，且一旦切到 SmartTube 后台立刻被系统杀进程。
-  - **正解**：摒弃 Android App 形式，直接将编译好的 **Linux 命令行二进制程序 (`mihomo`)** 放入 `/data/local/tmp` 作为 Linux 常驻守护进程运行。
-* ❌ **弯路 3：只修改系统全局代理，未清除 SmartTube 自身代理缓存**
-  - **问题**：通过 ADB 设置了 `settings put global http_proxy`，但 SmartTube 应用内部依旧优先读取自身的 `web_proxy_uri`，导致报错依旧。
-  - **正解**：通过 Root Telnet 直接用 `sed` 修改 SmartTube 内部首选项 XML 文件。
+### 1.3 大陆电视 Wi-Fi 连网慢与 Captive Portal 优化
+原生 Android 电视在连接 Wi-Fi 时会向谷歌服务器发起网络连通性探测（`generate_204`），国内由于 GFW 拦截会导致 Wi-Fi 显示感叹号、开机连网延迟 30~60 秒。
+通过 ADB 将网络检测服务器切换至国内极速服务器：
+```bash
+adb shell "settings put global captive_portal_mode 1"
+adb shell "settings put global captive_portal_http_url http://connect.rom.miui.com/generate_204"
+adb shell "settings put global captive_portal_https_url https://connect.rom.miui.com/generate_204"
+adb shell "settings put global ntp_server ntp.aliyun.com"
+```
 
 ---
 
 ## 2. 电视 ADB 远程操作与文件传输实战
 
 ### 2.1 如何开启电视的【ADB 调试】（各品牌差异与小红书搜索）
-
-不同品牌的安卓电视（创维、小米、海信、TCL、索尼、长虹、华为等）开启 ADB 调试的暗码与工厂菜单路径各不相同：
 
 > 💡 **最简单的方法**：打开 **小红书** 或 **B站**，直接搜索 `“你的电视品牌 + 开启ADB”`（例如：`创维电视 开启ADB调试`、`小米电视 开启开发者模式`），跟着图文或短视频操作只需 1 分钟。
 
@@ -146,65 +167,11 @@ graph TD
   - 【设置】 $\rightarrow$ 【关于】 $\rightarrow$ 在【产品型号】上连续按 OK 键 5 次提示开启开发者模式 $\rightarrow$ 返回【账号与安全】 $\rightarrow$ 将【ADB 调试】改为【允许】。
 * **索尼电视 (Sony Bravia)**：
   - 【设置】 $\rightarrow$ 【系统/设备偏好设置】 $\rightarrow$ 【关于】 $\rightarrow$ 连续点击【内部版本号】 7 次 $\rightarrow$ 返回在【开发者选项】中打开【USB 调试 / 网络 ADB】。
-* **海信 / 华为 / TCL / 长虹**：
-  - 建议直接在小红书搜索型号对应暗码进入工厂菜单开启。
 
 电脑端连接命令：
 ```bash
 adb connect <电视IP地址>:5555
 adb devices
-```
-
----
-
-### 2.2 远程如何把二进制与配置复制进电视？
-Android TV 的很多目录（如 `/system`）是只读的，且普通权限无法直接向 `/data/data/` 写入文件。
-
-#### ① 推送核心守护程序
-`/data/local/tmp` 具有执行权限，是存放 Linux 原生二进制文件的最佳位置：
-```bash
-# 1. 推送 mihomo 核心
-adb push mihomo /data/local/tmp/mihomo
-adb shell "chmod 755 /data/local/tmp/mihomo"
-
-# 2. 推送配置文件与 GeoIP 数据库到外置存储
-adb shell "mkdir -p /sdcard/mihomo"
-adb push config.yaml /sdcard/mihomo/config.yaml
-adb push Country.mmdb /sdcard/mihomo/Country.mmdb
-```
-
-#### ② 启动并常驻后台
-通过 `nohup` 让进程脱离终端会话运行：
-```bash
-adb shell "nohup /data/local/tmp/mihomo -d /sdcard/mihomo > /dev/null 2>&1 &"
-```
-
----
-
-### 2.3 Leanback TV 界面的 ADB 控制要点（遥控按键 vs 坐标点击）
-> ⚠️ **注意**：Android TV 的 Leanback 架构下，`input tap x y` 往往不能改变焦点或进入子菜单，**必须使用标准 DPAD 键值**：
-
-| 按键动作 | Android Keycode | ADB 命令 |
-| :--- | :--- | :--- |
-| **方向上 (UP)** | 19 | `adb shell input keyevent 19` |
-| **方向下 (DOWN)** | 20 | `adb shell input keyevent 20` |
-| **方向左 (LEFT)** | 21 | `adb shell input keyevent 21` |
-| **方向右 (RIGHT)** | 22 | `adb shell input keyevent 22` |
-| **确定 / 播放 (OK / ENTER)** | 23 / 66 | `adb shell input keyevent 23` |
-| **返回 (BACK)** | 4 | `adb shell input keyevent 4` |
-| **主页 (HOME)** | 3 | `adb shell input keyevent 3` |
-
----
-
-### 2.4 创维/酷开 Root Telnet 调试通道 (端口 4149)
-创维电视系统通常内置了 `busybox telnetd` 调试守护进程（运行在 `4149` 端口，拥有 `uid=0 (root)` 权限）：
-```python
-import socket
-
-s = socket.socket()
-s.connect(("<电视IP地址>", 4149)) # 创维电视 root telnet
-s.sendall(b"id\n")
-print(s.recv(1024)) # uid=0(root) gid=0(root)
 ```
 
 ---
@@ -216,29 +183,19 @@ flowchart TD
     subgraph TV [创维 / 酷开 Android TV 系统]
         MihomoDaemon["mihomo Linux 守护进程 (/data/local/tmp/mihomo)<br>• 监听 127.0.0.1:7890<br>• REST API 127.0.0.1:9090<br>• 内存占用仅 30MB, 无 UI, 免疫杀后台"]
         SmartTubeApp["SmartTube 播放器<br>• 内部代理指向: 127.0.0.1:7890<br>• 强制锁定 1080p 60fps AVC 芯片硬解"]
-        GlobalProxy["Android Global Proxy (127.0.0.1:7890)"]
+        LauncherApp["YouTube 启动器 (内置 libmihomo.so)<br>• 0.05s 唤醒代理<br>• 0.1s 启动 SmartTube<br>• 自身主动销毁 0 内存占用"]
     end
 
     subgraph Transit [境外高速专线节点]
-        Node["IEPL 专线 (台湾 04 / 香港 / 日本)"]
+        Node["IEPL 专线 (台湾 / 日本 / 香港)"]
     end
 
-    SmartTubeApp -->|本地环回流量| MihomoDaemon
-    GlobalProxy --> MihomoDaemon
+    LauncherApp -.->|唤醒/脱壳运行| MihomoDaemon
+    LauncherApp -->|跳转启动| SmartTubeApp
+    SmartTubeApp -->|本地环回 7890 端口| MihomoDaemon
     MihomoDaemon -->|加密 Shadowsocks / Trojan 协议| Node
     Node -->|畅连全球流媒体 CDN| YouTube[YouTube Video Stream & ytimg]
 ```
-
-### 3.1 为什么 Mihomo 不会被电视杀后台？
-国产电视系统（如创维 `SkyRMService` / 小米进程调度器）只监控并查杀 Dalvik/ART 虚拟机内的 Android App 进程（`Activity` / `Service`）。
-* **脱壳独立运行**：Mihomo 是纯 C/Go 编译的 ELF Linux Native 二进制文件，直接由 Linux 内核在 `/data/local/tmp` 目录托管运行。
-* **零 UI 零渲染**：内存消耗稳定在 30MB 左右，不占用 GPU / Display Surface 资源，系统内存管理器将其归类为底层内核级进程，因此具备超越普通 Android 代理 App 数百倍的存活性。
-
-### 3.2 开机自启守护机制 (Boot Auto-Start via LaunchOnBoot)
-为了实现电视在冷重启（断电开机）后无需借助电脑即可自动拉起代理，我们提供了 **`LaunchOnBoot_TV.apk`**：
-1. **监听 `BOOT_COMPLETED` 广播**：当电视开机进入桌面时，Android Framework 自动广播启动事件。
-2. **0.1 秒闪电拉起**：`LaunchOnBoot` 唤醒并在后台瞬间拉起 `/data/local/tmp/mihomo` 守护进程与 SmartTube。
-3. **免疫查杀**：即使 `LaunchOnBoot` 随后被电视系统的内存清理机制回收，由于底层 Linux 进程早已完成脱壳派生（`nohup` 独立会话），代理核心依然永久常驻后台。
 
 ---
 
@@ -247,6 +204,8 @@ flowchart TD
 | 脚本文件 | 功能说明 | 独立执行命令 |
 | :--- | :--- | :--- |
 | **`manage.py`** | 统一终端可视化管理控制台（推荐） | `python manage.py` |
+| **`generate_app_project.py`** | 自动生成电视专属启动器 Android 工程源码 | `python scripts/generate_app_project.py` |
+| **`compile_and_package.py`** | 纯 Python 驱动全流程编译、DEX、打包并签名 APK | `python scripts/compile_and_package.py` |
 | **`setup_tv.py`** | 大陆安卓电视一键部署全套环境（APK安装 + 二进制部署 + 订阅注入） | `python scripts/setup_tv.py --tv-ip <IP> --sub-url "<URL>"` |
 | **`update_subscription.py`** | 一键更新机场订阅链接并热重载 | `python scripts/update_subscription.py --tv-ip <IP> --url "<URL>"` |
 | **`fix_smarttube_proxy.py`** | 一键修复 SmartTube 内部代理死锁 | `python scripts/fix_smarttube_proxy.py --tv-ip <IP>` |
