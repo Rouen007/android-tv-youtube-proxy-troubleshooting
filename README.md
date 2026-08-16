@@ -72,26 +72,44 @@ python manage.py
 
 ---
 
-## 🌟 纯电视端闭环：专属「YouTube 启动器」架构
+## 🌟 纯电视端闭环：专属「YouTube 启动器」v3.0 终极架构
 
-为了彻底摆脱对电脑的依赖，我们为 Android TV 深度定制了专属的轻量级启动器应用 **`YouTube-Proxy-Launcher.apk`**：
+为了彻底摆脱对电脑的依赖，并突破国产电视激进的后台杀手机制，我们为 Android TV 深度定制了专属的轻量级启动器应用 **`YouTube-Proxy-Launcher.apk` (v3.0)**：
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as 用户遥控器点击
+    participant APK as Launcher APK (com.tv.youtubeproxy)
+    participant ADBD as 电视本机 ADB 守护 (127.0.0.1:5555)
+    participant Mihomo as Mihomo 原生代理 (UID 2000 / PID 1)
+    participant ST as SmartTube 播放器
+    participant Killer as 创维 SkyRMService 杀手
+
+    User->>APK: 点击 "YouTube Proxy"
+    APK->>APK: 提示: "正在连接代理加速网络..."
+    APK->>ADBD: 内部 Socket 连接 127.0.0.1:5555 发送 exec 协议指令
+    ADBD->>Mihomo: 双重 Fork + 信号脱壳拉起代理进程 (挂靠 init PID 1)
+    loop 轮询探测 (每 300ms)
+        APK->>Mihomo: 检测 127.0.0.1:7890 端口就绪状态
+    end
+    Mihomo-->>APK: 端口响应 (平均仅需 300ms)
+    APK->>User: 提示: "加速已就绪，正在打开 YouTube"
+    APK->>ST: 启动 SmartTube (已直连 7890 专线)
+    APK->>APK: 调用 finish() 退出并释放自身内存
+    Note over Killer,APK: 3~15 秒后触发系统后台清理
+    Killer->>APK: 杀死 com.tv.youtubeproxy 进程 (ADJ=200)
+    Note over Mihomo: Mihomo 归属 UID shell (2000) 且挂靠 PID 1<br/>100% 免疫 OEM 杀后台，稳固运行 24/7！
 ```
-[遥控器点击主页图标]
-       │
-       ▼
-1. 唤醒代理核心 (0.05s)  ──► 检测/执行内置的 libmihomo.so 底层代理，打通 7890 专线
-       │
-       ▼
-2. 自动拉起播放器 (0.1s) ──► 瞬间跳转进入 SmartTube (YouTube) 界面
-       │
-       ▼
-3. 自身主动销毁 (0.01s)  ──► 调用 finish() 彻底退出自身，释放 100% 内存（0 内存残留）
-```
 
-### 🛠️ 为什么必须使用 Native Library (`libmihomo.so`) 打包？
-* **安卓系统的 SELinux 沙盒安全策略（`untrusted_app`）**：安卓 9+ 严格禁止普通 App 直接执行 `/data/local/tmp` 中的外部二进制文件。
-* **合规原生库提取**：将 `mihomo` 命名为 `libmihomo.so` 放在 APK 的 `lib/arm64-v8a/` 目录下，系统安装时会自动赋予其合法可执行权限，使得应用能够合法直接拉起原生守护进程。
+### 🛠️ 启动器核心技术演进与排坑复盘
+1. **v1.0 (Runtime.exec 方案 - 失败)**：APK 内部直接调用 `Runtime.getRuntime().exec`。由于 Linux 的 Cgroup 机制，Mihomo 成为 APK 的子进程。创维 `SkyRMService` 在 3 秒后清理 APK，连带把 Mihomo 一同杀死。
+2. **v2.0 (前台服务 Foreground Service 方案 - 失败)**：开启常驻前台服务与通知栏。但国产深度定制系统（创维/酷开）对未进白名单的第三方应用一视同仁直接强杀，忽略前台服务。
+3. **v3.0 (终极方案：本机 ADB 协议委托 + 信号脱壳)**：
+   * APK 启动后，通过 Java Socket 与电视本地 `127.0.0.1:5555` 握手。
+   * 使用 ADB `exec` 协议委托系统的 `shell (UID 2000)` 用户拉起代理，并通过 `trap '' HUP INT TERM QUIT` 和双重 Fork 将父进程重定向到系统 `init (PID 1)`。
+   * 彻底脱离 APK 进程树与 Cgroup，创维杀手完全无权清理 `shell` 用户的守护进程！
+   * **智能端口轮询**：探测到 7890 端口就绪后再打开 SmartTube，彻底消除首次加载视频报“网络错误”的问题。
 
 ---
 
