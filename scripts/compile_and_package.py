@@ -56,14 +56,15 @@ java_files = glob.glob(os.path.join(app_dir, "src", "**", "*.java"), recursive=T
 
 javac_cmd = [
     javac,
+    "-encoding", "UTF-8",
     "-cp", android_jar,
     "-d", classes_dir,
     "-source", "1.8",
     "-target", "1.8"
 ] + java_files
 
-r = subprocess.run(javac_cmd, capture_output=True, text=True)
-print(r.stdout, r.stderr)
+r = subprocess.run(javac_cmd, capture_output=True)
+print("javac exit code:", r.returncode)
 
 # 4. Dex classes with d8
 print("[4/5] Dexing classes with D8...")
